@@ -1,7 +1,7 @@
 var misPeliculas = (function() {
 
+var array4 = [];
 var editable;
-document.getElementById('peliculas').addEventListener('change', onChange, false);
 
 $('#agregar-btn').click(agregar);
 $('#eliminar-btn').click(eliminar);
@@ -10,10 +10,18 @@ $('#editar-btn').click(editar);
 $('#guardar-btn').click(guardar);
 $('#cancelar-btn').click(cancelar);
 
-$('#guardar-btn').prop('disabled', true);
-$('#cancelar-btn').prop('disabled', true);
+$('#guardar-btn').hide();
+$('#cancelar-btn').hide();
 
 
+$('#my-form').attr('action', 'javascript:void(0);');
+
+$("#nombre").keyup(function(event){
+    if(event.keyCode == 13){
+        $("#agregar-btn").click();
+    }
+});
+	
 	function limpiarCampo() {
 		
 		$('#my-form').trigger('reset');
@@ -27,29 +35,39 @@ $('#cancelar-btn').prop('disabled', true);
 		var nombre = $('#nombre').val().trim().toLowerCase();
 
 		if(nombre.length > 0) {
+
+			if(duplicados(nombre) === true) {
+
+				alert('La película ya existe');
+				limpiarCampo();
+
+			} else {
+
+				array4.push(nombre);
+
+				var list = document.createElement('li');
+				var input = document.createElement('input');
+				var label = document.createElement('input');
+
+				list.className = "li";
+				
+				label.className = 'clase';
+				label.setAttribute('name', nombre.charAt(0).toUpperCase() + nombre.substring(1).toLowerCase());
+				label.setAttribute('value', nombre.charAt(0).toUpperCase() + nombre.substring(1).toLowerCase());
+				label.setAttribute('readonly', true);
+
+				input.type = 'checkbox';
+				input.className = 'box';
+				input.addEventListener('click', onCheck);
+
+								
+				$('#peliculas').append(list);
+				list.append(input);
+				list.append(label);
+				
+				limpiarCampo();
+			}
 		
-			var list = document.createElement('li');
-			var input = document.createElement('input');
-			var label = document.createElement('input');
-
-			list.className = "li";
-			
-			label.className = 'clase';
-			label.setAttribute('name', nombre.charAt(0).toUpperCase() + nombre.substring(1).toLowerCase());
-			label.setAttribute('value', nombre.charAt(0).toUpperCase() + nombre.substring(1).toLowerCase());
-			label.setAttribute('readonly', true);
-
-			input.type = 'checkbox';
-			input.className = 'box';
-			input.addEventListener('click', onCheck);
-
-							
-			$('#peliculas').append(list);
-			list.append(input);
-			list.append(label);
-			
-			limpiarCampo();
-
 		} else {
 
 			alert('Ingrese el nombre de la película');
@@ -59,6 +77,16 @@ $('#cancelar-btn').prop('disabled', true);
 	}
 
 
+	function duplicados(nombre) {
+
+		for (var i = 0; i < array4.length; i++) {
+			if (array4[i] == nombre) {
+				return true;
+			} 
+		}
+	}
+
+	
 
 	function onCheck(event) {
 
@@ -79,23 +107,42 @@ $('#cancelar-btn').prop('disabled', true);
 
 	function eliminar() {
 
-		if ($('input.box').is(':checked')) {
+		if($('#peliculas').has('li').length) {
 			
-			$('input.box:checked').parent().remove();
-			limpiarCampo();
-			
+			if ($('input.box').is(':checked')) {
+
+				if(confirm('¿Está seguro que desea eliminar las películas seleccionadas?')) {
+					
+					$('input.box:checked').parent().remove();
+					limpiarCampo();
+				}
+				
+			} else {
+
+				if(confirm('¿Está seguro que desea eliminar todas las películas del listado?')) {
+					
+					$('#peliculas').empty();
+					limpiarCampo();
+				}
+
+			}
+				
+			var cadena = $( ".clase" ).map(function() { return(this.name); }).get().join().toLowerCase();
+
+			var array = cadena.split(',');
+
+			array4 = array;
+
 		} else {
 
-			$('#peliculas').empty();
-			
-			limpiarCampo();
-
+			alert('Debe ingresar al menos una película para poder eliminar');
 		}
-		
+
 	}
 
 
 
+	document.getElementById('peliculas').addEventListener('change', onChange, false);
 
 	function numberOfCheckboxesSelected() {
 		return document.querySelectorAll('input[type=checkbox]:checked').length;
@@ -108,16 +155,16 @@ $('#cancelar-btn').prop('disabled', true);
 	
 	function editar() {
 
-		$('#editar-btn').prop('disabled', true);
-		
 		if ($('input.box').is(':checked')) {
 
+			$('#editar-btn').prop('disabled', true);
 			$('#agregar-btn').prop('disabled', true);
-			$('#ordenar-btn').prop('disabled', true);
 			$('#eliminar-btn').prop('disabled', true);
-			
-			$('#guardar-btn').prop('disabled', false);
-			$('#cancelar-btn').prop('disabled', false);
+			$('#ordenar-btn').prop('disabled', true);
+			$('#guardar-btn').show();
+			$('#cancelar-btn').show();
+			$('input.box').prop('disabled', true);
+
 
 			editable = $('input.box:checked').next();
 			editable.removeAttr('readonly').focus();
@@ -135,16 +182,26 @@ $('#cancelar-btn').prop('disabled', true);
 
 	function guardar() {
 		
-		$('#guardar-btn').prop('disabled', true);
-		$('#agregar-btn').prop('disabled', false);
-		$('#ordenar-btn').prop('disabled', false);
-		$('#eliminar-btn').prop('disabled', false);
-		$('#cancelar-btn').prop('disabled', true);
+		var valor = $('input.box:checked').next().val().toLowerCase();
 
-		var valor = $('input.box:checked').next().val();
+		if(duplicados(valor) === true) {
+
+			alert("Lo sentimos, la película ya existe");
+			cancelar();
+
+		} else {
+			
+			$('input.box:checked').next().attr('value', valor);
+			$('input.box:checked').next().attr('name', valor);
+		}
+
 		
-		$('input.box:checked').next().attr('value', valor);
-		$('input.box:checked').next().attr('name', valor);
+		var cadena = $( ".clase" ).map(function() { return(this.name); }).get().join().toLowerCase();
+
+		var array = cadena.split(',');
+
+		array4 = array;
+
 		
 		if(editable.attr('readonly')) {
 			
@@ -152,24 +209,70 @@ $('#cancelar-btn').prop('disabled', true);
 
 			editable.attr('readonly', 'readonly');
 		}
-		
+
+		$('input.box').prop('disabled', false);
+		$('#cancelar-btn').hide();
+		$('#editar-btn').prop('disabled', false);
+		$('#agregar-btn').prop('disabled', false);
+		$('#eliminar-btn').prop('disabled', false);
+		$('#ordenar-btn').prop('disabled', false);
+		$('#guardar-btn').hide();
+
+		limpiarCampo();
 	}
+
+
 
 	function cancelar() {
 
-		$('#editar-btn').prop('disabled', false);
-		$('#guardar-btn').prop('disabled', true);
-		$('#agregar-btn').prop('disabled', true);
-		$('#ordenar-btn').prop('disabled', false);
-		$('#eliminar-btn').prop('disabled', true);
-		$('#cancelar-btn').prop('disabled', true);
-
 		if(editable.attr('readonly')) {
 			
 		}  else {
 
 			editable.attr('readonly', 'readonly');
 		}
+
+		var cadena = $( ".clase" ).map(function() { return(this.name); }).get().join().toLowerCase();
+
+		var array = cadena.split(',');
+
+		
+		$('#peliculas').empty();
+
+		
+		for (var i = 0; i < array.length; i++) {
+					
+			var list = document.createElement('li');
+			var input = document.createElement('input');
+			var label = document.createElement('input');
+
+			list.className = "li";
+
+			label.className = 'clase';
+			label.setAttribute('name', array[i].charAt(0).toUpperCase() + array[i].substring(1).toLowerCase());
+			label.setAttribute('value', array[i].charAt(0).toUpperCase() + array[i].substring(1).toLowerCase());
+			label.setAttribute('readonly', true);
+
+			input.type = 'checkbox';
+			input.className = 'box';
+			input.addEventListener('click', onCheck);
+
+			$('#peliculas').append(list);
+			list.append(input);
+			list.append(label);
+		
+		}
+
+		$('input.box').prop('disabled', false);
+		$('#cancelar-btn').hide();
+		$('#editar-btn').prop('disabled', false);
+		$('#agregar-btn').prop('disabled', false);
+		$('#eliminar-btn').prop('disabled', false);
+		$('#ordenar-btn').prop('disabled', false);
+		$('#guardar-btn').hide();
+
+		limpiarCampo();
+
 	}
 
 
@@ -177,9 +280,6 @@ $('#cancelar-btn').prop('disabled', true);
 
 	function ordenar() {
 
-		$('#agregar-btn').prop('disabled', false);
-		$('#eliminar-btn').prop('disabled', false);
-		
 		var cadena = $( ".clase" ).map(function() { return(this.name); }).get().join().toLowerCase();
 
 		var array = cadena.split(',');
@@ -195,6 +295,7 @@ $('#cancelar-btn').prop('disabled', true);
 	      }
 	      return 0;
 	    });
+
 
 		$('#peliculas').empty();
 
@@ -231,6 +332,8 @@ $('#cancelar-btn').prop('disabled', true);
 		limpiarCampo();
 
 	}
+
+
 
 
 })();
