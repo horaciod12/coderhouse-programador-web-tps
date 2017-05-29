@@ -1,7 +1,0 @@
-var myPhone = (function() {
-
-
-
-
-
-})();
